@@ -3,8 +3,8 @@ fullnameOverride: openg2p-portal-server
 
 replicaCount: 1
 image:
-  repository: psnappz/openg2p-portal-server
-  tag: "1.0"
+  repository: openg2p/openg2p-portal-server
+  tag: "develop"
   pullPolicy: Always
 
 openapiRootPath: /api/portal
