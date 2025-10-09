@@ -1,0 +1,22 @@
+apiVersion: v2
+name: openg2p-portal-server
+description: A Helm chart for OpenG2P Portal Server API
+type: application
+version: 1.1
+appVersion: ""
+dependencies:
+- name: common
+  repository: https://openg2p.github.io/openg2p-helm
+  version: 2.x.x
+- name: postgresql
+  repository: https://openg2p.github.io/openg2p-helm
+  version: 15.x.x
+  condition: postgresql.enabled
+keywords:
+  - openg2p-portal-server
+maintainers:
+  - email: info@openg2p.org
+    name: OpenG2P
+icon: https://openg2p.github.io/openg2p-helm/openg2p-logo.png
+annotations:
+  catalog.cattle.io/display-name: "OpenG2P-Portal-Server"
