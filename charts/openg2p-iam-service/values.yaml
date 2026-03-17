@@ -1,0 +1,149 @@
+global:
+  iamHostname: "iam.dev.openg2p.org"
+
+  # Database
+  postgresqlHost: commons-postgresql
+  iamDB: '{{ printf "%s" .Release.Name | replace "-" "_" }}'
+  iamDBPort: 5432
+  iamDBUser: '{{ printf "%s_user" .Release.Name | replace "-" "_" }}'
+  iamDBSecret: '{{ .Release.Name }}'
+  iamDBUserPasswordKey: '{{ .Release.Name }}-db-user'
+
+  # Security & Authentication
+  keycloakBaseUrl: https://keycloak2.openg2p.org
+  keycloakIssuerUrl: '{{ .Values.global.keycloakBaseUrl }}/realms/master'
+
+postgres-init:
+  enabled: true
+  postgresql:
+    host: "{{ .Values.global.postgresqlHost }}"
+    port: 5432
+    existingSecret: commons-postgresql
+    existingSecretPostgresPasswordKey: postgres-password
+  databases:
+    - name: '{{ tpl .Values.global.iamDB $ }}'
+      user: '{{ tpl .Values.global.iamDBUser $ }}'
+      secret: '{{ tpl .Values.global.iamDBSecret $ }}'
+      secretUserPasswordKey: '{{ tpl .Values.global.iamDBUserPasswordKey $ }}'
+
+iamStaffPortalApi:
+  enabled: true
+  nameOverride: iam-staff-portal-api
+  hostname: 'staff-{{ tpl .Values.global.iamHostname $ }}'
+  replicaCount: 1
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+
+  updateStrategy:
+    type: RollingUpdate
+
+  serviceAccount:
+    create: false
+    name: ""
+
+  image:
+    repository: openg2p/iam-staff-portal-api
+    tag: "develop"
+    pullPolicy: Always
+
+  podSecurityContext:
+    enabled: false
+
+  containerSecurityContext:
+    enabled: false
+
+  openapiRootPath: /
+  containerPort: 8000
+
+  service:
+    type: ClusterIP
+    port: 80
+    externalTrafficPolicy: Cluster
+
+  istio:
+    enabled: true
+    virtualservice:
+      enabled: true
+      host: '{{ tpl .Values.iamStaffPortalApi.hostname $ }}'
+      gateway: "internal"
+      destination: '{{ .Release.Name }}-iam-staff-portal-api'
+      destinationPort: '{{ .Values.iamStaffPortalApi.service.port }}'
+      prefix: '{{ .Values.openapiRootPath }}/'
+      rewriteUri: "/"
+    gateway:
+      enabled: false
+      host: '{{ tpl .Values.iamStaffPortalApi.hostname $ }}'
+      ingressController:
+        istio: ingressgateway
+      httpTlsRedirect: false
+      httpEnabled: true
+      httpsEnabled: false
+      tls:
+        mode: SIMPLE
+        credentialName: ""
+
+  envVars:
+    IAM_STAFF_DB_DRIVER: "postgresql+asyncpg"
+    IAM_STAFF_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
+    IAM_STAFF_DB_DBNAME: '{{ tpl .Values.global.iamDB $ }}'
+    IAM_STAFF_DB_PORT: '{{ .Values.global.iamDBPort }}'
+    IAM_STAFF_DB_USERNAME: '{{ tpl .Values.global.iamDBUser $ }}'
+    IAM_STAFF_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
+
+  envVarsFrom:
+    IAM_STAFF_DB_PASSWORD:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.iamDBSecret $ }}'
+        key: '{{ tpl .Values.global.iamDBUserPasswordKey $ }}'
+
+  startupProbe:
+    enabled: true
+    httpGet:
+      path: /ping
+      port: http
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /ping
+      port: http
+    initialDelaySeconds: 20
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /ping
+      port: http
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  postgresCheckerInit:
+    enabled: true
+    image:
+      repository: jbergknoff/postgresql-client
+      tag: latest
+      pullPolicy: IfNotPresent
+    command:
+      - "sh"
+    args:
+      - "-c"
+      - "until pg_isready -U ${IAM_STAFF_DB_USERNAME} -h ${IAM_STAFF_DB_HOSTNAME} -p ${IAM_STAFF_DB_PORT:-5432} -d ${IAM_STAFF_DB_DBNAME:-iamdb}; do sleep 3; done"
+    containerSecurityContext:
+      enabled: false
