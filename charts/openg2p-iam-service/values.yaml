@@ -1,5 +1,5 @@
 global:
-  iamHostname: "iam.dev.openg2p.org"
+  iamHostname: "iam.trial.openg2p.org"
 
   # Database
   postgresqlHost: commons-postgresql
@@ -71,7 +71,7 @@ iamStaffPortalApi:
       enabled: true
       host: '{{ tpl .Values.iamStaffPortalApi.hostname $ }}'
       gateway: "internal"
-      destination: '{{ .Release.Name }}-iam-staff-portal-api'
+      destination: ""
       destinationPort: '{{ .Values.iamStaffPortalApi.service.port }}'
       prefix: '{{ .Values.openapiRootPath }}/'
       rewriteUri: "/"
@@ -94,6 +94,8 @@ iamStaffPortalApi:
     IAM_STAFF_DB_PORT: '{{ .Values.global.iamDBPort }}'
     IAM_STAFF_DB_USERNAME: '{{ tpl .Values.global.iamDBUser $ }}'
     IAM_STAFF_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
+    IAM_STAFF_KEYCLOAK_BASE_URL: '{{ .Values.global.keycloakBaseUrl }}'
+    IAM_STAFF_KEYCLOAK_ISSUER_URL: '{{ tpl .Values.global.keycloakIssuerUrl $ }}'
 
   envVarsFrom:
     IAM_STAFF_DB_PASSWORD:
@@ -141,9 +143,9 @@ iamStaffPortalApi:
       tag: latest
       pullPolicy: IfNotPresent
     command:
-      - "sh"
+      - 'sh'
     args:
-      - "-c"
-      - "until pg_isready -U ${IAM_STAFF_DB_USERNAME} -h ${IAM_STAFF_DB_HOSTNAME} -p ${IAM_STAFF_DB_PORT:-5432} -d ${IAM_STAFF_DB_DBNAME:-iamdb}; do sleep 3; done"
+      - '-c'
+      - 'until psql "postgresql://${IAM_STAFF_DB_USERNAME}:${IAM_STAFF_DB_PASSWORD}@${IAM_STAFF_DB_HOSTNAME}:${IAM_STAFF_DB_PORT}/${IAM_STAFF_DB_DBNAME}" -c "SELECT 1" > /dev/null 2>&1; do echo "Waiting for database ${IAM_STAFF_DB_DBNAME} to be ready..."; sleep 3; done'
     containerSecurityContext:
       enabled: false

@@ -1,13 +1,14 @@
-name: Publish OpenG2P Example Bank Helm charts
+name: Publish Helm Charts
 
 on:
+  push:
+    branches:
+      - "**"
+    tags:
+      - '**'
+    paths:
+      - 'charts/**'
   workflow_dispatch:
-    inputs:
-      forcePublishCharts:
-        description: "Force publish Charts?"
-        default: "*"
-        type: string
-
 
 jobs:
   generate-charts:
@@ -24,17 +25,27 @@ jobs:
 
     - id: files
       uses: jitterbit/get-changed-files@v1
+      if: github.event_name == 'push'
 
     - name: save helm/charts to tmp.txt file
       run: |
         touch charts-list.txt
-        for changed_file in ${{ steps.files.outputs.all }}; do
-          if [[ ${changed_file} =~ ^charts ]]; then
-            chart_name=$(echo "${changed_file}" | awk -F/ '/^[charts]/{print $2}')
-            echo $chart_name >> charts-list.txt;
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          # Manual trigger: publish all charts
+          for chartpath in charts/*/; do
+            chart_name=$(basename "$chartpath")
+            echo $chart_name >> charts-list.txt
             echo "Saved $chart_name chart to charts-list.txt"
-          fi
-        done
+          done
+        else
+          for changed_file in ${{ steps.files.outputs.all }}; do
+            if [[ ${changed_file} =~ ^charts ]]; then
+              chart_name=$(echo "${changed_file}" | awk -F/ '/^[charts]/{print $2}')
+              echo $chart_name >> charts-list.txt;
+              echo "Saved $chart_name chart to charts-list.txt"
+            fi
+          done
+        fi
         cat charts-list.txt | sort | uniq > charts-list-unique.txt
         mv charts-list-unique.txt charts-list.txt
         echo "List of charts to be published";
@@ -66,6 +77,7 @@ jobs:
         if [[ '${{ github.repository_owner }}' != 'OpenG2P' ]]; then
           echo "SKIP=TRUE" >> $GITHUB_ENV
         fi
+
     - name: Upload tar as Artifact
       uses: actions/upload-artifact@v4
       with:
@@ -90,11 +102,11 @@ jobs:
 
     - name: Update index.yaml
       run: |
-        helm repo index --url https://openg2p.github.io/openg2p-helm/ .
+        helm repo index .
         for chartname in $RANCHER_CHARTS; do
           cp ${chartname}*.tgz rancher/
         done
-        helm repo index --url https://openg2p.github.io/openg2p-helm/ --merge rancher/index.yaml rancher
+        helm repo index --url ../ --merge rancher/index.yaml rancher
         for chartname in $RANCHER_CHARTS; do
           rm rancher/${chartname}*.tgz || true
         done
@@ -107,6 +119,6 @@ jobs:
         author_name: openg2pbot
         author_email: bot@openg2p.org
         default_author: user_info
-        message: 'added example bank helm charts for publish openg2p/openg2p-g2p-bridge-example-bank-deployment@${{ github.sha }}'
+        message: 'added iam-service helm charts for publish openg2p/openg2p-iam-service-deployment@${{ github.sha }}'
         add: './*.tgz ./index.yaml rancher/index.yaml'
       if: env.SKIP != 'TRUE'
