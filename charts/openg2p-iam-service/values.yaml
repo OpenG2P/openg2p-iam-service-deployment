@@ -16,6 +16,9 @@ global:
   keycloakBaseUrl: https://keycloak2.openg2p.org
   keycloakIssuerUrl: '{{ .Values.global.keycloakBaseUrl }}/realms/master'
 
+  # Staff Portal redirect URL
+  staffPortalDefaultRedirectUri: 'https://staff-portal.trial.openg2p.org'
+
 postgres-init:
   enabled: true
   postgresql:
@@ -89,6 +92,26 @@ iamStaffPortalApi:
       tls:
         mode: SIMPLE
         credentialName: ""
+
+  # ---------------------------------------------------------------------------
+  # Login providers — rendered as a Secret and mounted into the container.
+  # Each entry maps to a row in the login_providers DB table.
+  # Keycloak endpoints are auto-derived from keycloakBaseUrl + realm.
+  # ---------------------------------------------------------------------------
+  loginProviders:
+    - id: 1
+      userType: "staff"
+      providerName: "Keycloak"
+      description: "Login with Keycloak"
+      realm: "staff"
+      clientId: "staff-portal"
+      clientSecret: ""
+      tokenEndpointAuthMethod: "client_secret_basic"
+      scope: "openid profile email"
+      enablePkce: true
+      active: true
+
+  dataMountPath: /opt/iam-staff-portal-data
 
   envVars:
     IAM_STAFF_DB_DRIVER: "postgresql+asyncpg"

@@ -110,14 +110,29 @@ spec:
           {{- if and .Values.readinessProbe .Values.readinessProbe.enabled }}
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.readinessProbe "enabled") "context" $) | nindent 12 }}
           {{- end }}
-          {{- if .Values.extraVolumeMounts }}
-          volumeMounts: {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
+          {{- if or .Values.loginProviders .Values.extraVolumeMounts }}
+          volumeMounts:
+            {{- if .Values.loginProviders }}
+            - name: login-providers
+              mountPath: {{ .Values.dataMountPath }}/login_providers.json
+              subPath: login_providers.json
+              readOnly: true
+            {{- end }}
+            {{- if .Values.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
           {{- end }}
         {{- if .Values.sidecars }}
         {{- include "common.tplvalues.render" ( dict "value" .Values.sidecars "context" $) | nindent 8 }}
         {{- end }}
-      {{- if .Values.extraVolumes }}
-      volumes: {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes "context" $) | nindent 8 }}
-      {{- end }}
+      volumes:
+        {{- if .Values.loginProviders }}
+        - name: login-providers
+          secret:
+            secretName: {{ include "common.names.fullname" . }}-login-providers
+        {{- end }}
+        {{- if .Values.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}
 {{- end -}}
 {{- end }}
