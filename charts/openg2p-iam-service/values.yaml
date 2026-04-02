@@ -96,6 +96,9 @@ iamStaffPortalApi:
     IAM_STAFF_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
     IAM_STAFF_KEYCLOAK_BASE_URL: '{{ .Values.global.keycloakBaseUrl }}'
     IAM_STAFF_KEYCLOAK_ISSUER_URL: '{{ tpl .Values.global.keycloakIssuerUrl $ }}'
+    IAM_STAFF_LOGIN_PROVIDERS_TABLE_ENABLED: true 
+    IAM_STAFF_LOGIN_PROVIDERS_TABLE_NAME: "login_providers"
+  
 
   envVarsFrom:
     IAM_STAFF_DB_PASSWORD:
