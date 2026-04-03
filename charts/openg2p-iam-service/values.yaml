@@ -19,6 +19,11 @@ global:
   # Staff Portal redirect URL
   staffPortalDefaultRedirectUri: 'https://staff-portal.trial.openg2p.org'
 
+  # Application URLs (populated by parent chart per environment)
+  keycloakApplicationUrl: 'https://keycloak.{{ .Release.Namespace }}.openg2p.org'
+  registryApplicationUrl: 'https://registry.{{ .Release.Namespace }}.openg2p.org'
+  minioApplicationUrl: 'https://minio.{{ .Release.Namespace }}.openg2p.org'
+
 postgres-init:
   enabled: true
   postgresql:
@@ -132,6 +137,9 @@ iamStaffPortalApi:
     IAM_STAFF_AUTH_COOKIE_DOMAIN: '{{ tpl .Values.global.iamHostname $ }}'
     IAM_STAFF_AUTH_COOKIE_MAX_AGE: 1800
     IAM_STAFF_AUTH_COOKIE_SET_EXPIRES: true
+    IAM_STAFF_DATA_APPLICATION_URLS__KEYCLOAK_APPLICATION_URL: '{{ tpl .Values.global.keycloakApplicationUrl $ }}'
+    IAM_STAFF_DATA_APPLICATION_URLS__REGISTRY_APPLICATION_URL: '{{ tpl .Values.global.registryApplicationUrl $ }}'
+    IAM_STAFF_DATA_APPLICATION_URLS__MINIO_APPLICATION_URL: '{{ tpl .Values.global.minioApplicationUrl $ }}'
   
 
   envVarsFrom:
