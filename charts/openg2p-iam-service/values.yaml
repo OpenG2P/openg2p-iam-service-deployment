@@ -16,6 +16,7 @@ global:
   keycloakBaseUrl: 'https://keycloak.{{ .Release.Namespace }}.openg2p.org'
   keycloakRealm: staff
   keycloakIssuerUrl: '{{ tpl .Values.global.keycloakBaseUrl $ }}/realms/{{ .Values.global.keycloakRealm }}'
+  keycloakExternalIssuerUrl: '{{ tpl .Values.global.keycloakBaseUrl $ }}/realms/{{ .Values.global.keycloakRealm }}'
 
   # Cookie domain (dot-prefixed so cookies work across subdomains)
   authCookieDomain: '.{{ .Release.Namespace }}.openg2p.org'
@@ -130,7 +131,7 @@ iamStaffPortalApi:
     IAM_STAFF_DB_USERNAME: '{{ tpl .Values.global.iamDBUser $ }}'
     IAM_STAFF_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
     IAM_STAFF_KEYCLOAK_BASE_URL: '{{ .Values.global.keycloakBaseUrl }}'
-    IAM_STAFF_KEYCLOAK_ISSUER_URL: '{{ tpl .Values.global.keycloakIssuerUrl $ }}'
+    IAM_STAFF_KEYCLOAK_ISSUER_URL: '{{ tpl .Values.global.keycloakExternalIssuerUrl $ }}'
     IAM_STAFF_LOGIN_PROVIDERS_TABLE_ENABLED: true
     IAM_STAFF_LOGIN_PROVIDERS_TABLE_NAME: "login_providers"
     IAM_STAFF_AUTH_REDIS_URL: 'redis://{{ tpl .Values.global.redisInstallationName $ }}-master:6379/0'
