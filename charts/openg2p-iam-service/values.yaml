@@ -13,8 +13,12 @@ global:
   redisInstallationName: 'commons-redis'
 
   # Security & Authentication
-  keycloakBaseUrl: https://keycloak2.openg2p.org
-  keycloakIssuerUrl: '{{ .Values.global.keycloakBaseUrl }}/realms/master'
+  keycloakBaseUrl: 'https://keycloak.{{ .Release.Namespace }}.openg2p.org'
+  keycloakRealm: staff
+  keycloakIssuerUrl: '{{ tpl .Values.global.keycloakBaseUrl $ }}/realms/{{ .Values.global.keycloakRealm }}'
+
+  # Cookie domain (dot-prefixed so cookies work across subdomains)
+  authCookieDomain: '.{{ .Release.Namespace }}.openg2p.org'
 
   # Staff Portal redirect URL
   staffPortalDefaultRedirectUri: 'https://staff-portal.trial.openg2p.org'
@@ -134,7 +138,7 @@ iamStaffPortalApi:
     IAM_STAFF_AUTH_ENABLED: true
     IAM_STAFF_AUTH_COOKIE_HTTPONLY: true
     IAM_STAFF_AUTH_COOKIE_PATH: "/"
-    IAM_STAFF_AUTH_COOKIE_DOMAIN: '{{ tpl .Values.global.iamHostname $ }}'
+    IAM_STAFF_AUTH_COOKIE_DOMAIN: '{{ tpl .Values.global.authCookieDomain $ }}'
     IAM_STAFF_AUTH_COOKIE_MAX_AGE: 1800
     IAM_STAFF_AUTH_COOKIE_SET_EXPIRES: true
     IAM_STAFF_DATA_APPLICATION_URLS__KEYCLOAK_APPLICATION_URL: '{{ tpl .Values.global.keycloakApplicationUrl $ }}'
