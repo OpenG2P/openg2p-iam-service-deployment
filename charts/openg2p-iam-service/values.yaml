@@ -115,7 +115,7 @@ iamStaffPortalApi:
       description: "Login with Keycloak"
       realm: "staff"
       clientId: "staff-portal"
-      clientSecret: "STAFF_PORTAL_SECRET"
+      clientSecret: "staff_portal_secret"
       tokenEndpointAuthMethod: "client_secret_basic"
       scope: "openid profile email"
       enablePkce: true
