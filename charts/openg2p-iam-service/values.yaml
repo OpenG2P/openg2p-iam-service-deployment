@@ -115,7 +115,7 @@ iamStaffPortalApi:
       description: "Login with Keycloak"
       realm: "staff"
       clientId: "staff-portal"
-      clientSecret: ""
+      clientSecret: "STAFF_PORTAL_SECRET"
       tokenEndpointAuthMethod: "client_secret_basic"
       scope: "openid profile email"
       enablePkce: true
@@ -146,12 +146,15 @@ iamStaffPortalApi:
     IAM_STAFF_DATA_APPLICATION_URLS__REGISTRY_APPLICATION_URL: '{{ tpl .Values.global.registryApplicationUrl $ }}'
     IAM_STAFF_DATA_APPLICATION_URLS__MINIO_APPLICATION_URL: '{{ tpl .Values.global.minioApplicationUrl $ }}'
   
-
   envVarsFrom:
     IAM_STAFF_DB_PASSWORD:
       secretKeyRef:
         name: '{{ tpl .Values.global.iamDBSecret $ }}'
         key: '{{ tpl .Values.global.iamDBUserPasswordKey $ }}'
+    IAM_STAFF_DATA_CLIENT_SECRETS__STAFF_PORTAL_SECRET:
+      secretKeyRef:
+        name: staff-portal
+        key: client_secret
 
   startupProbe:
     enabled: true
