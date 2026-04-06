@@ -145,6 +145,9 @@ iamStaffPortalApi:
     IAM_STAFF_DATA_APPLICATION_URLS__KEYCLOAK_APPLICATION_URL: '{{ tpl .Values.global.keycloakApplicationUrl $ }}'
     IAM_STAFF_DATA_APPLICATION_URLS__REGISTRY_APPLICATION_URL: '{{ tpl .Values.global.registryApplicationUrl $ }}'
     IAM_STAFF_DATA_APPLICATION_URLS__MINIO_APPLICATION_URL: '{{ tpl .Values.global.minioApplicationUrl $ }}'
+
+    # API specific middleware configs
+    IAM_STAFF_CORS_ALLOW_ORIGINS: '{{ list (tpl .Values.global.registryApplicationUrl $) (tpl .Values.global.staffPortalDefaultRedirectUri $) | toJson }}'
   
   envVarsFrom:
     IAM_STAFF_DB_PASSWORD:
